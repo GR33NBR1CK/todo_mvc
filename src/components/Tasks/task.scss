@@ -1,0 +1,43 @@
+.task {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    &.done {
+        .taskStatus {
+            background: green;
+        }
+        .taskName {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+    }
+    .taskStatus {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background: red;
+        cursor: pointer;
+        border-radius: 50%;
+        margin: 5px 10px 5px 5px;
+        &.done {
+            background: green;
+        }
+    }
+    .taskDeleteBtn {
+        display: none;
+        background: transparent;
+        border: 0;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .taskName {
+        flex-grow: 5;
+        line-height: 2;
+    }
+    &:hover {
+        .taskDeleteBtn {
+            display: inline-block;
+        }
+    }
+}
