@@ -16,7 +16,7 @@ function Task({handleContentEditable, task, handleDeleteTask, handleChangeStatus
             <span
                 className='taskName'
                 onBlur={(event) => handleContentEditable(event, task)}
-                contentEditable
+                // contentEditable
             >{name}</span>
             <button
                 className='taskDeleteBtn'

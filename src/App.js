@@ -1,51 +1,35 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Header from "./components/Header/Header";
 import InputWrapper from "./components/InputWrapper/InputWrapper";
 import Tasks from "./components/Tasks/Tasks";
-import * as PropTypes from "prop-types";
 import {TaskCounter} from "./components/TaskCounter/TaskCounter";
 import {Filters} from "./components/Filters/Filters";
 import {ClearCompleted} from "./components/ClearCompleted/ClearCompleted";
+import {addTaskAPI, getAllTasksAPI} from "./helpers/api";
 
-function* genId() {
-    let id = 0;
-
-    while (1) {
-        yield id;
-        id++;
-    }
-}
-
-const nextId = genId();
-
-
-Filters.propTypes = {
-    onClick: PropTypes.func,
-    onClick1: PropTypes.func,
-    onClick2: PropTypes.func
-};
-
-ClearCompleted.propTypes = {onClick: PropTypes.func};
 
 function App() {
-    const [value, setValue] = useState('');
     const [tasks, setTasks] = useState([]);
     const [filter, setFilter] = useState("all")
     const [allDone, setAllDone] = useState(false)
 
-    function handleInput(event) {
-        setValue(event.target.value)
+    useEffect( () => {
+        const controller = new AbortController()
+        getAllTasksAPI(controller.signal).then(setTasks);
+
+        return () => {
+            controller.abort();
+        }
+    }, [])
+
+    async function handleAddTask(value) {
+        const task = await addTaskAPI({name: value, status: false})
+            setTasks([...tasks, task]);
     }
 
-    function handleAddTask(event) {
-        if (event.key === 'Enter') {
-            setTasks([...tasks, {
-                id: nextId.next().value,
-                name: value,
-                status: false
-            }])
-            setValue('')
-        }
+    async function deleteTaskAPI(taskId) {
+        const response = await fetch(`http://localhost:3001/tasks/${taskId}`, {method: 'DELETE'});
+        return await response.json();
     }
 
     function handleChangeStatus(task) {
@@ -53,12 +37,23 @@ function App() {
         setTasks([...tasks])
     }
 
-    function handleDeleteTask(taskToRemove) {
+    async function handleDeleteTask(taskToRemove) {
+        await deleteTaskAPI(taskToRemove.id)
         setTasks(tasks.filter((task) => task !== taskToRemove))
     }
 
-    function handleDeleteAllTasks() {
-        setTasks(tasks.filter((task) => !task.status))
+    async function handleDeleteAllTasks() {
+        const filteredTasks = [];
+
+        for (const task of tasks) {
+            if (task.status) {
+                await deleteTaskAPI(task.id)
+            } else {
+                filteredTasks.push(task);
+            }
+        }
+
+        setTasks(filteredTasks)
     }
 
     function handleAllDone() {
@@ -82,10 +77,8 @@ function App() {
             <InputWrapper
                 tasks={tasks}
                 doneAll={allDone}
-                value={value}
                 handleAllDone={handleAllDone}
                 handleAddTask={handleAddTask}
-                handleInput={handleInput}
             />
 
             {!!tasks.length && (
